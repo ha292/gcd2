@@ -64,6 +64,23 @@ createAverageDataFrame <-function(df) {
     result
 }
 
+# Appropriately labels the data set with descriptive variable names. 
+meltAndLabelVariables <- function(adf) {
+    d <- melt(adf, id=c("activity", "subject"))
+    message("Setting sensor")
+    d$sensor <- sapply(d$variable, getSensor, USE.NAMES=F)
+    message("Setting domain")
+    d$component  <- sapply(d$variable, getDomain, USE.NAMES=F)
+    message("Setting var")
+    d$domain  <- sapply(d$variable, getDomain, USE.NAMES=F)
+    d$var <- sapply(d$variable, getVar, USE.NAMES=F)
+    message("Setting var component")
+    d$component  <- sapply(d$variable, getVarComponent, USE.NAMES=F)
+    message("Setting aggregation type")
+    d$aggregation_type  <- sapply(d$variable, getAggregation, USE.NAMES=F)
+    result <- data.frame(d[, c("subject", "activity", "sensor", "component", "domain", "var", "aggregation_type", "value")])
+}
+
 getSensor <- function(x) {
     if (grepl("Acc", x)) {
         result <- "Accelerometer"
@@ -141,22 +158,6 @@ writeDataSet <- function(adf, fileName) {
     write.table(adf, fileName, sep=",", row.names=F, col.names=T, quote=F)
 }
 
-# Appropriately labels the data set with descriptive variable names. 
-meltAndLabelVariables <- function(adf) {
-    d <- melt(adf, id=c("activity", "subject"))
-    message("Setting sensor")
-    d$sensor <- sapply(d$variable, getSensor, USE.NAMES=F)
-    message("Setting domain")
-    d$component  <- sapply(d$variable, getDomain, USE.NAMES=F)
-    message("Setting var")
-    d$domain  <- sapply(d$variable, getDomain, USE.NAMES=F)
-    d$var <- sapply(d$variable, getVar, USE.NAMES=F)
-    message("Setting var component")
-    d$component  <- sapply(d$variable, getVarComponent, USE.NAMES=F)
-    message("Setting aggregation type")
-    d$aggregation_type  <- sapply(d$variable, getAggregation, USE.NAMES=F)
-    result <- data.frame(d[, c("subject", "activity", "sensor", "component", "domain", "var", "aggregation_type", "value")])
-}
 
 #------------------------------------------------------------------------------
 # Main
@@ -173,5 +174,5 @@ df <- addSubject(df)
 df <- addActivities(df)
 adf <- createAverageDataFrame(df)
 result <- meltAndLabelVariables(adf)
-writeDataSet(result, "result.csv")
+writeDataSet(result, "result.txt")
 

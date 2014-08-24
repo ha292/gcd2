@@ -1,7 +1,7 @@
 # Submission for Project 2
 
 ## Result dataset
-The result is in [result.csv](result.csv)
+The result is in [result.text](result.txt)
 
 ## Codebook
 The codebook is described in [codebook.txt](codebook.txt)
