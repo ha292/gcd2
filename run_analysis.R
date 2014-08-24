@@ -7,8 +7,7 @@ loadAndMerge <- function() {
 }
 
 # Extracts only the measurements on the mean and standard deviation for each measurement. 
-# Appropriately labels the data set with descriptive variable names. 
-extractAndLabelColumns <- function(df) {
+extractColumns <- function(df) {
     message("Exracting the mean and std columns")  
     dfColumns <- read.table("features.txt", header=F, sep="")
     meanCols <- grepl("-mean\\(", dfColumns[,2])
@@ -57,20 +56,13 @@ addActivities <- function(df) {
 
 
 # Creates a second, independent tidy data set with the average of each variable for each activity and each subject. 
-createAverageDataSet <-function(df) {
+createAverageDataFrame <-function(df) {
     message("creating average dataset")
     result <- aggregate(df[, 3:ncol(df)], by=list(df$activity, df$subject), FUN=mean)
     colnames(result)[1] <- "activity"
     colnames(result)[2] <- "subject"
     result
 }
-
-writeDataSet <- function(adf, fileName) {
-    message("Writing dataset")
-    write.table(adf, fileName, sep=",", row.names=F, col.names=T)
-    write.table(colnames(adf), paste(fileName, "CodeBook.txt", sep="-"), row.names=F, quote=F, col.names=F)
-}
-
 
 getSensor <- function(x) {
     if (grepl("Acc", x)) {
@@ -108,7 +100,31 @@ getDomain <- function(x) {
 
 getVar <- function(x) {
     result <- ""
+    vars <- list("JerkMag", "Jerk", "Mag")
+    for (v in vars) {
+        if (grepl(v, x)) {
+            result <-v
+            break
+        }
+    }
+    vars <- list("-X", "-Y", "-Z")
+    for (v in vars) {
+        if (grepl(v, x)) {
+            y <- gsub("-", "", v)
+            if (nchar(result) > 0) {
+                result <- paste(result, y, sep="_")
+            } else {
+                result <- y
+            }
+            break
+        }
+    }
+    
+    result
+}
 
+getVarComponent <- function(x) {
+    result <- ""
     if (grepl("Body", x)) {
         result <- "Body"
     } else if (grepl("Gravity", x)) {
@@ -116,45 +132,46 @@ getVar <- function(x) {
     }  else {
         stop("Column name must have Body or Gravity")
     }
-    
-    vars <- list("JerkMag", "Jerk", "Mag")
-    for (v in vars) {
-        if (grepl(v, x)) {
-            result <-paste(result, v, sep="_")
-            break
-        }
-    }
-    vars <- list("-X", "-Y", "-Z")
-    for (v in vars) {
-        if (grepl(v, x)) {
-            result <- paste(result, gsub("-", "", v), sep="_")
-            break
-        }
-    }
     result
 }
 
+
+writeDataSet <- function(adf, fileName) {
+    message("Writing dataset")
+    write.table(adf, fileName, sep=",", row.names=F, col.names=T, quote=F)
+}
+
+# Appropriately labels the data set with descriptive variable names. 
+meltAndLabelVariables <- function(adf) {
+    d <- melt(adf, id=c("activity", "subject"))
+    message("Setting sensor")
+    d$sensor <- sapply(d$variable, getSensor, USE.NAMES=F)
+    message("Setting domain")
+    d$component  <- sapply(d$variable, getDomain, USE.NAMES=F)
+    message("Setting var")
+    d$domain  <- sapply(d$variable, getDomain, USE.NAMES=F)
+    d$var <- sapply(d$variable, getVar, USE.NAMES=F)
+    message("Setting var component")
+    d$component  <- sapply(d$variable, getVarComponent, USE.NAMES=F)
+    message("Setting aggregation type")
+    d$aggregation_type  <- sapply(d$variable, getAggregation, USE.NAMES=F)
+    result <- data.frame(d[, c("subject", "activity", "sensor", "component", "domain", "var", "aggregation_type", "value")])
+}
 
 #------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
+#This variable limits the number of rows to process from input files. If set to -1 it will process all rows
 nrows <- -1
+
+library("reshape2")
+
 df <- loadAndMerge()
-df <- extractAndLabelColumns(df)
+df <- extractColumns(df)
 df <- addSubject(df)
 df <- addActivities(df)
-adf <- createAverageDataSet(df)
-
-d <- melt(adf, id=c("activity", "subject"))
-message("Setting sensor")
-d$sensor <- sapply(d$variable, getSensor, USE.NAMES=F)
-message("Setting domain")
-d$domain  <- sapply(d$variable, getDomain, USE.NAMES=F)
-message("Setting var")
-d$var <- sapply(d$variable, getVar, USE.NAMES=F)
-message("Setting var type")
-d$aggregation_type  <- sapply(d$variable, getAggregation, USE.NAMES=F)
-result <- data.frame(d[, c("subject", "activity", "sensor", "var", "domain", "aggregation_type", "value", "variable")])
+adf <- createAverageDataFrame(df)
+result <- meltAndLabelVariables(adf)
 writeDataSet(result, "result.csv")
 

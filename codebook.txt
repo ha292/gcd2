@@ -1,0 +1,42 @@
+Codebook for result.csv
+
+Columns
+1. subjec: 
+	ID of the subject
+2. activity - which activity is being measured
+	One of the following activities
+		WALKING
+		WALKING_UPSTAIRS
+		WALKING_DOWNSTAIRS
+		SITTING
+		STANDING
+		LAYING
+3. sensor - which sensor is being measured
+	One of the following
+		Gyroscope
+		Accelerometer
+4. component - Component of the measure from signal processiing
+	One of the following
+		Body
+		Gravitiy
+5. domain - Domain of the measure 
+	One of the following
+		Time
+		Frequency
+
+6. var - name of the measure
+	Example values 
+		X
+		Y
+		Z
+		Jerk
+		JerkMag
+		Mag
+
+7. aggregation_type -- which aggregation was applied to the values   
+	Possible values
+		mean  -- arithmatic mean
+		std   -- standard deviation
+8. value -- measured value
+		A real number
+		
