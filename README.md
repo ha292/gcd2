@@ -25,4 +25,4 @@ Functions are
   * domain - Domain of the measure -- (Time, Frequency)
   * var - name of the measure - (X, Y, Z, Jerk, JerkMag, Mag)
   * aggregation_type -- which aggregation was applied to the values  (mean, std)
-		
+ * writeDataSet() -- writes the result out		
